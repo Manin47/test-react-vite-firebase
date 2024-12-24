@@ -1,36 +1,42 @@
+// src/App.jsx
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase"; // Import Firestore instance
+import { supabase } from "../supabase";
+
+import Props from "./components/Props";
 
 const App = () => {
-    const [data, setData] = useState([]);
+  const [users, setUsers] = useState([]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, "user"));
-                const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setData(items);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        };
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data, error } = await supabase
+        .from("users") // Nama tabel di Supabase
+        .select("*"); // Mengambil semua kolom
 
-        fetchData();
-    }, []);
+      if (error) {
+        console.error("Error fetching data:", error);
+      } else {
+        setUsers(data);
+      }
+    };
 
-    return (
-        <div>
-            <h1>Data from Firebase</h1>
-            <ul>
-                {data.map(item => (
-                    <li key={item.id}>
-                        {JSON.stringify(item)}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+    fetchData();
+  }, []);
+
+  return (
+    <div>
+      {/* <h1>Users from Supabase</h1> */}
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>
+            {user.name} - {user.email}
+          </li>
+        ))}
+      </ul>
+
+      <Props/>
+    </div>
+  );
 };
 
 export default App;
